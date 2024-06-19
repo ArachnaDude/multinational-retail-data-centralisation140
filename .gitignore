@@ -1,6 +1,11 @@
-*/__pycache__
-scratch.py
+__pycache__/
+scratch.*
 
 db_creds.yaml
 
 task_list.txt
+
+uncleaned_data/
+experimental_cleaning/
+
+restore_uncleaned_data.py
