@@ -1,2 +1,9 @@
+from data_extraction import DataExtractor
+
+import pandas as pd
+
 class DataCleaning():
-  pass
+  
+  def clean_user_data(self, pandas_dataframe):
+    
+    pass
