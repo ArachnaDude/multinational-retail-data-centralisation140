@@ -2,6 +2,7 @@ __pycache__/
 scratch.*
 
 db_creds.yaml
+local_creds.yaml
 
 task_list.txt
 
