@@ -11,3 +11,4 @@ experimental_cleaning/
 restore_uncleaned_data.py
 
 refined_clean_legacy_users.ipynb
+data_clean_rough.ipynb
