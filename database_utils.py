@@ -3,18 +3,27 @@ from sqlalchemy import create_engine, MetaData
 
 class DatabaseConnector():
 
-  def read_db_creds(self):
-    with open("./db_creds.yaml", "r") as stream:
+  def read_db_creds(self, credentials):
+    with open(credentials, "r") as stream:
       data = yaml.safe_load(stream)
-      return data
+    return data
   
-  def init_db_engine(self):
-    cred_dict = self.read_db_creds()
-    engine = create_engine(f"postgresql+psycopg2://{cred_dict['RDS_USER']}:{cred_dict['RDS_PASSWORD']}@{cred_dict['RDS_HOST']}:{cred_dict['RDS_PORT']}/{cred_dict['RDS_DATABASE']}")
+  def init_db_engine(self, credentials):
+    creds = self.read_db_creds(credentials)
+
+    # DATABASE_TYPE = "postgresql"
+    # DBAPI = "psycopg2"
+    HOST = creds["HOST"]
+    PASSWORD = creds["PASSWORD"]
+    USER = creds["USER"]
+    DATABASE = creds["DATABASE"]
+    PORT = creds["PORT"]
+
+    engine = create_engine(f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
     return engine
   
-  def list_db_tables(self):
-    engine = self.init_db_engine()
+  def list_db_tables(self, credentials):
+    engine = self.init_db_engine(credentials)
     engine.execution_options(isolation_level="AUTOCOMMIT").connect()
     metadata = MetaData()
     metadata.reflect(engine)
@@ -27,5 +36,6 @@ class DatabaseConnector():
     
 
 if __name__ == "__main__":
+  cred_path = "./db_creds.yaml"
   connection = DatabaseConnector()
-  connection.list_db_tables()
+  connection.list_db_tables(cred_path)
