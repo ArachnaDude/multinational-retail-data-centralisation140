@@ -1,5 +1,6 @@
 import yaml
 from sqlalchemy import create_engine, MetaData
+import pandas as pd
 
 class DatabaseConnector():
 
@@ -33,6 +34,10 @@ class DatabaseConnector():
       print(table)
     return list(metadata.tables.keys())
   
+  def upload_to_db(self, dataframe, table_name, local_db_credentials):
+    engine = self.init_db_engine(local_db_credentials)
+    dataframe.to_sql(table_name, engine, if_exists="replace", index=False)
+
     
 
 if __name__ == "__main__":
