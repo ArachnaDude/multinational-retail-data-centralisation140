@@ -49,3 +49,6 @@ class DataCleaning():
     df = handle_bad_emails(df)
 
     return df
+
+  def clean_card_data(self, pandas_dataframe):
+    pass
