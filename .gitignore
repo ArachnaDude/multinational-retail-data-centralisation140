@@ -3,6 +3,7 @@ scratch.*
 
 db_creds.yaml
 local_creds.yaml
+pdf_link.yaml
 
 task_list.txt
 
@@ -12,4 +13,6 @@ experimental_cleaning/
 restore_uncleaned_data.py
 
 refined_clean_legacy_users.ipynb
+
 data_clean_rough.ipynb
+dim_card_details_rough_clean.ipynb
