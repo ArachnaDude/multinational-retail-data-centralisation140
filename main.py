@@ -16,15 +16,27 @@ def process_users(remote_creds, local_creds):
   connection.upload_to_db(cleaned_df, "dim_users", local_creds)
 
 
+def process_dim_card_details(pdf_path, local_creds):
+  connection = DatabaseConnector()
+
+  extractor = DataExtractor()
+  dim_card_details_df = extractor.retrieve_pdf_data(pdf_path)
+  
+  cleaner = DataCleaning()
+  cleaned_df = cleaner.clean_card_data(dim_card_details_df)
+
+  connection.upload_to_db(cleaned_df, "dim_card_details", local_creds)
 
 
 if __name__ == "__main__":
 
   local_creds = "./local_creds.yaml"
   remote_creds = "./db_creds.yaml"
-
   process_users(remote_creds, local_creds)
 
+
+  path_to_pdf = "./pdf_link.yaml"
+  process_dim_card_details(path_to_pdf, local_creds)
 
 
   # extractor = DataExtractor()
