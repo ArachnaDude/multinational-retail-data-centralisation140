@@ -83,8 +83,8 @@ class DataExtractor():
     execution_time = end_time - start_time
     print(f"Retrieved data in {execution_time:.2f} seconds")
 
-    all_stores_data = pd.DataFrame.from_dict(all_stores_data)
-    return all_stores_data
+    dataframe = pd.DataFrame.from_dict(all_stores_data)
+    return dataframe
 
 if __name__ == "__main__":
   path = "./pdf_link.yaml"
