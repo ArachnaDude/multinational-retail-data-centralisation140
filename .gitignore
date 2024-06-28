@@ -4,6 +4,7 @@ scratch.*
 db_creds.yaml
 local_creds.yaml
 pdf_link.yaml
+api_creds.yaml
 
 task_list.txt
 
