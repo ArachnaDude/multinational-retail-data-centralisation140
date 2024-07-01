@@ -143,3 +143,70 @@ class DataCleaning():
     df = handle_invalid_card_numbers(df)
 
     return df
+  
+  def clean_store_data(self, pandas_dataframe):
+    
+    df = pandas_dataframe
+
+    def drop_useless_columns(dataframe):
+      dataframe.drop(columns=["index", "lat"], inplace=True)
+      return dataframe
+    
+    df = drop_useless_columns(df)
+
+    def clean_continents(dataframe):
+      dataframe.loc[dataframe["continent"] == "eeEurope", "continent"] = "Europe"
+      dataframe.loc[dataframe["continent"] == "eeAmerica", "continent"] = "America"
+      return dataframe
+    
+    df = clean_continents(df)
+
+    def drop_junk_and_null_rows(dataframe):
+      junk_and_null_index = dataframe.loc[~dataframe["continent"].isin(["Europe", "America"])].index
+      dataframe.drop(junk_and_null_index, inplace=True)
+      dataframe.reset_index(drop=True, inplace= True)
+      return dataframe
+    
+    df = drop_junk_and_null_rows(df)
+
+    def process_dates(date_str):
+      formats = ["%Y %B %d", "%Y/%m/%d", "%B %Y %d", "%Y-%m-%d"]
+      for format in formats:
+        try:
+          return datetime.strptime(date_str, format)
+        except ValueError:
+          continue
+      return pd.NaT
+
+    df["opening_date"] = df["opening_date"].apply(process_dates)
+
+    def handle_staff_numbers(dataframe):
+      dataframe["staff_numbers"] = dataframe["staff_numbers"].str.replace(r"[^0-9]", "", regex=True)
+      dataframe["staff_numbers"] = pd.to_numeric(dataframe["staff_numbers"], errors="coerce")
+      return dataframe
+    
+    df = handle_staff_numbers(df)
+
+    def correct_mislabeled_columns(dataframe):
+      incorrect_columns = ["latitude", "longitude"]
+      corrected_columns = ["longitude", "latitude"]
+      dataframe.rename(columns=dict(zip(incorrect_columns, corrected_columns)), inplace=True)
+      new_column_order = ["address", "latitude", "longitude", "locality", "store_code", "staff_numbers", "opening_date", "store_type", "country_code", "continent" ]
+      dataframe = dataframe[new_column_order]
+      return dataframe
+    
+    df = correct_mislabeled_columns(df)
+    
+    def standardise_coordinates(coordinate):
+      df.loc[0, ["latitude", "longitude"]] = "N/A"
+      if coordinate == "N/A":
+        return "0.00000"
+      
+      split_coord_str = coordinate.split(".")
+
+      return f"{split_coord_str[0]}.{split_coord_str[1]:0<5}"
+
+    df["latitude"] = df["latitude"].apply(standardise_coordinates)
+    df["longitude"] = df["longitude"].apply(standardise_coordinates)
+
+    return df
