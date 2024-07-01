@@ -28,6 +28,17 @@ def process_dim_card_details(pdf_path, local_creds):
   connection.upload_to_db(cleaned_df, "dim_card_details", local_creds)
 
 
+def process_store_data(api_creds, local_creds):
+  connection = DatabaseConnector()
+
+  extractor = DataExtractor()
+  store_details_df = extractor.retrieve_stores_data(api_creds)
+
+  cleaner = DataCleaning()
+  cleaned_df = cleaner.clean_store_data(store_details_df)
+
+  connection.upload_to_db(cleaned_df, "dim_store_details", local_creds)
+
 if __name__ == "__main__":
 
   local_creds = "./local_creds.yaml"
@@ -38,6 +49,8 @@ if __name__ == "__main__":
   path_to_pdf = "./pdf_link.yaml"
   process_dim_card_details(path_to_pdf, local_creds)
 
+  api_creds = "./api_creds.yaml"
+  process_store_data(api_creds, local_creds)
 
   # extractor = DataExtractor()
   # legacy_users_df = extractor.read_rds_table(engine, "legacy_users")
