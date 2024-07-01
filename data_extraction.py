@@ -103,10 +103,12 @@ class DataExtractor():
     print(object_name)
 
     s3 = boto3.client("s3")
+    print("Attempting to extract data from s3 bucket")
     try:
       s3_object = s3.get_object(Bucket=bucket, Key=object_name)
       s3_data = s3_object["Body"].read().decode("utf-8")
       df = pd.read_csv(StringIO(s3_data))
+      print("Successfully extracted bucket data")
       return df
     except Exception as e:
       print(f"Couldn't extract data from bucket:\n{type(e)}")
