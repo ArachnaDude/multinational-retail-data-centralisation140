@@ -4,6 +4,8 @@ import tabula
 import yaml
 import time
 import requests
+import boto3
+from io import StringIO
 
 
 class DataExtractor():
@@ -85,6 +87,31 @@ class DataExtractor():
 
     dataframe = pd.DataFrame.from_dict(all_stores_data)
     return dataframe
+  
+
+  def extract_from_s3(self, s3_path):
+
+    with open(s3_path, "r") as stream:
+      s3_path = yaml.safe_load(stream)
+    
+    path = s3_path["PATH"]
+    split_path = path.split("/")
+    bucket = split_path[-2]
+    object_name = split_path[-1]
+
+    print(bucket)
+    print(object_name)
+
+    s3 = boto3.client("s3")
+    try:
+      s3_object = s3.get_object(Bucket=bucket, Key=object_name)
+      s3_data = s3_object["Body"].read().decode("utf-8")
+      df = pd.read_csv(StringIO(s3_data))
+      return df
+    except Exception as e:
+      print(f"Couldn't extract data from bucket:\n{type(e)}")
+
+
 
 if __name__ == "__main__":
   path = "./pdf_link.yaml"
@@ -97,4 +124,5 @@ if __name__ == "__main__":
 
   # extractor.retrieve_pdf_data(path)
 
-  extractor.retrieve_stores_data(api_creds)
+  # extractor.retrieve_stores_data(api_creds)
+  extractor.extract_from_s3("./s3_path.yaml")
