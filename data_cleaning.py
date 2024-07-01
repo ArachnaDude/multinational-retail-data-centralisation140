@@ -210,3 +210,77 @@ class DataCleaning():
     df["longitude"] = df["longitude"].apply(standardise_coordinates)
 
     return df
+  
+  def clean_products_data(self, pandas_dataframe):
+    
+    df = pandas_dataframe
+
+    def handle_null_and_junk(dataframe):
+      nulls_and_junk = dataframe.loc[dataframe["category"].str.contains(r"\d", regex=True, na=True)].index
+      dataframe.drop(columns="Unnamed: 0", inplace=True)
+      dataframe.drop(nulls_and_junk, inplace=True)
+      dataframe.reset_index(drop=True, inplace=True)
+      return dataframe
+    
+    df = handle_null_and_junk(df)
+
+    def convert_product_weights(weight):
+
+      if weight.endswith(" ."):
+        weight = weight.replace(" .", "")
+
+      def handle_multipacks(multi_value):
+        w1, w2 = multi_value.split(" x ")
+        multiplier_to_int = int(w1)
+        weight_to_int = float(w2.replace("g", ""))
+        grams_to_kilos = weight_to_int/1000
+        combined_weight = multiplier_to_int * grams_to_kilos
+        return round(combined_weight, 3)
+
+      def convert_oz_to_kg(oz_value):
+        format_and_split_weight = int(oz_value.replace("oz", ""))
+        convert_to_kg = round(format_and_split_weight * 0.02834952, 3)
+        return convert_to_kg
+        
+      def convert_ml_to_kg(ml_value):
+        format_and_split = int(ml_value.replace("ml", ""))
+        convert_to_kg = round(format_and_split/1000, 3)
+        return convert_to_kg
+      
+      def convert_g_to_kg(g_value):
+        format_and_split = float(g_value.replace("g", ""))
+        convert_to_kg = round(format_and_split/1000, 3)
+        return convert_to_kg
+      
+      def convert_kg(kg_value):
+        format_and_split = float(kg_value.replace("kg", ""))
+        return round(format_and_split, 3)
+
+      if "x" in weight:
+        return handle_multipacks(weight)
+      elif weight.endswith("kg"):
+        return convert_kg(weight)
+      elif weight.endswith("oz"):
+        return convert_oz_to_kg(weight)
+      elif weight.endswith("ml"):
+        return convert_ml_to_kg(weight)
+      elif weight.endswith("g"):
+        return convert_g_to_kg(weight)
+      else:
+        return None
+      
+    df["weight"] = df["weight"].apply(convert_product_weights)
+
+    def rename_weight_column(dataframe):
+      dataframe.rename(columns={"weight": "weight_kg"}, inplace=True)
+      return dataframe
+    
+    df = rename_weight_column(df)
+
+    def format_price(price):
+      price = price.replace("£", "")
+      return price
+
+    df["product_price"] = df["product_price"].apply(format_price)
+
+    return df
