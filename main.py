@@ -39,6 +39,20 @@ def process_store_data(api_creds, local_creds):
 
   connection.upload_to_db(cleaned_df, "dim_store_details", local_creds)
 
+
+def process_products_data(s3_path, local_creds):
+  connection = DatabaseConnector()
+
+  extractor = DataExtractor()
+  product_details_df = extractor.extract_from_s3(s3_path)
+  
+  cleaner = DataCleaning()
+  cleaned_df = cleaner.clean_products_data(product_details_df)
+
+  connection.upload_to_db(cleaned_df, "dim_products", local_creds)
+
+
+
 if __name__ == "__main__":
 
   local_creds = "./local_creds.yaml"
@@ -51,6 +65,9 @@ if __name__ == "__main__":
 
   api_creds = "./api_creds.yaml"
   process_store_data(api_creds, local_creds)
+
+  s3_path = "./s3_path.yaml"
+  process_products_data(s3_path, local_creds)
 
   # extractor = DataExtractor()
   # legacy_users_df = extractor.read_rds_table(engine, "legacy_users")
