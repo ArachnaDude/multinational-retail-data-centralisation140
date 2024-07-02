@@ -296,3 +296,17 @@ class DataCleaning():
     df = drop_unneeded_columns(df)
 
     return df
+  
+  def clean_date_times_data(self, pandas_dataframe):
+    
+    df = pandas_dataframe
+
+    def drop_nulls_and_junk(dataframe):
+      null_and_junk_index = dataframe.loc[~dataframe["date_uuid"].str.match(r"^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$")].index
+      dataframe.drop(null_and_junk_index, inplace=True)
+      dataframe.reset_index(drop=True, inplace=True)
+      return dataframe
+
+    df = drop_nulls_and_junk(df)
+
+    return df
