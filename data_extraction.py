@@ -118,7 +118,6 @@ class DataExtractor():
         s3_data = s3_object["Body"].read().decode("utf-8")
         df = pd.read_csv(StringIO(s3_data))
         print("Successfully extracted bucket data")
-        print(df.head())
         return df
       except Exception as e:
         print(f"Couldn't extract data from bucket:\n{type(e)}")
