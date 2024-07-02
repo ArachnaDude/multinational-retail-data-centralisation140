@@ -289,10 +289,10 @@ class DataCleaning():
     
     df = pandas_dataframe
 
-    def drop_mandatory_columns(dataframe):
-      dataframe.drop(columns=["first_name", "last_name", "1"], inplace=True)
+    def drop_unneeded_columns(dataframe):
+      dataframe.drop(columns=["first_name", "last_name", "1", "level_0", "index"], inplace=True)
       return dataframe
     
-    df = drop_mandatory_columns(df)
+    df = drop_unneeded_columns(df)
 
     return df
