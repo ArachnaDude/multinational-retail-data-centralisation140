@@ -91,27 +91,40 @@ class DataExtractor():
 
   def extract_from_s3(self, s3_path):
 
-    with open(s3_path, "r") as stream:
-      s3_path = yaml.safe_load(stream)
-    
-    path = s3_path["PATH"]
-    split_path = path.split("/")
-    bucket = split_path[-2]
-    object_name = split_path[-1]
-
-    print(bucket)
-    print(object_name)
-
-    s3 = boto3.client("s3")
     print("Attempting to extract data from s3 bucket")
-    try:
-      s3_object = s3.get_object(Bucket=bucket, Key=object_name)
-      s3_data = s3_object["Body"].read().decode("utf-8")
-      df = pd.read_csv(StringIO(s3_data))
-      print("Successfully extracted bucket data")
-      return df
-    except Exception as e:
-      print(f"Couldn't extract data from bucket:\n{type(e)}")
+
+    with open(s3_path, "r") as stream:
+      content = yaml.safe_load(stream)
+    
+    if content["PATH"].startswith("https://"):
+      path = content["PATH"]
+      try:
+        df = pd.read_json(path)
+        print("Successfully extracted bucket data")
+        return df
+      except Exception as e:
+        print(f"Couldn't extract dataframe from bucket:\n{e}")
+
+    elif content["PATH"].startswith("s3://"):
+      path = content["PATH"]
+      split_path = path.split("/")
+      bucket = split_path[-2]
+      object_name = split_path[-1]
+
+      s3 = boto3.client("s3")
+      
+      try:
+        s3_object = s3.get_object(Bucket=bucket, Key=object_name)
+        s3_data = s3_object["Body"].read().decode("utf-8")
+        df = pd.read_csv(StringIO(s3_data))
+        print("Successfully extracted bucket data")
+        print(df.head())
+        return df
+      except Exception as e:
+        print(f"Couldn't extract data from bucket:\n{type(e)}")
+    
+    else:
+      raise ValueError("Invalid path")
 
 
 
@@ -127,4 +140,4 @@ if __name__ == "__main__":
   # extractor.retrieve_pdf_data(path)
 
   # extractor.retrieve_stores_data(api_creds)
-  extractor.extract_from_s3("./s3_path.yaml")
+  extractor.extract_from_s3("./s3_path2.yaml")
