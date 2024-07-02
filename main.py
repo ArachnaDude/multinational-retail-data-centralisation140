@@ -65,6 +65,18 @@ def process_orders_table(remote_creds, local_creds):
   connection.upload_to_db(cleaned_df, "orders_table", local_creds)
 
 
+def process_date_times(s3_path, local_creds):
+  connection = DatabaseConnector()
+
+  extractor = DataExtractor()
+  date_times_df = extractor.extract_from_s3(s3_path)
+
+  cleaner = DataCleaning()
+  cleaned_df = cleaner.clean_date_times_data(date_times_df)
+
+  connection.upload_to_db(cleaned_df, "dim_date_times", local_creds)
+
+
 
 if __name__ == "__main__":
 
@@ -83,6 +95,10 @@ if __name__ == "__main__":
   process_products_data(s3_path, local_creds)
 
   process_orders_table(remote_creds, local_creds)
+
+  path_2 = "./s3_path2.yaml"
+  process_date_times(path_2, local_creds)
+
 
   # extractor = DataExtractor()
   # legacy_users_df = extractor.read_rds_table(engine, "legacy_users")
