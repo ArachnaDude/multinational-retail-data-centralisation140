@@ -52,6 +52,19 @@ def process_products_data(s3_path, local_creds):
   connection.upload_to_db(cleaned_df, "dim_products", local_creds)
 
 
+def process_orders_table(remote_creds, local_creds):
+  connection = DatabaseConnector()
+  remote_engine = connection.init_db_engine(remote_creds)
+
+  extractor = DataExtractor()
+  orders_df = extractor.read_rds_table(remote_engine, "orders_table")
+
+  cleaner = DataCleaning()
+  cleaned_df = cleaner.clean_orders_table(orders_df)
+
+  connection.upload_to_db(cleaned_df, "orders_table", local_creds)
+
+
 
 if __name__ == "__main__":
 
@@ -68,6 +81,8 @@ if __name__ == "__main__":
 
   s3_path = "./s3_path.yaml"
   process_products_data(s3_path, local_creds)
+
+  process_orders_table(remote_creds, local_creds)
 
   # extractor = DataExtractor()
   # legacy_users_df = extractor.read_rds_table(engine, "legacy_users")
