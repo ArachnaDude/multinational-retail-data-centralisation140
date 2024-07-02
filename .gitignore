@@ -6,6 +6,7 @@ local_creds.yaml
 pdf_link.yaml
 api_creds.yaml
 s3_path.yaml
+s3_path2.yaml
 
 task_list.txt
 
@@ -20,3 +21,5 @@ data_clean_rough.ipynb
 dim_card_details_rough_clean.ipynb
 dim_store_details_rough_clean.ipynb
 dim_products_rough_clean.ipynb
+orders_table_rough_clean.ipynb
+dim_date_times_rough_clean.ipynb
