@@ -20,7 +20,7 @@ class DataExtractor():
       Reads a table from an AWS relational database and returns it as a pandas DataFrame.
 
       
-    retrieve_pdf_data(pdf_path: str) - pd.DataFrame:
+    retrieve_pdf_data(pdf_path: str) -> pd.DataFrame:
       Extracts data from a PDF file and returns it as a pandas DataFrame.
 
     
