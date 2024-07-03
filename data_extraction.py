@@ -6,38 +6,91 @@ import time
 import requests
 import boto3
 from io import StringIO
+from sqlalchemy import Engine
+from typing import Dict, Any
 
 
 class DataExtractor():
+
+  """
+  DataExtractor class used to manage extraction of data from AWS RDS databases, PDF, API and S3 buckets.
+
+  Methods:
+    read_rds_table(engine: Engine) -> pd.DataFrame:
+      Reads a table from an AWS relational database and returns it as a pandas DataFrame.
+
+      
+    retrieve_pdf_data(pdf_path: str) - pd.DataFrame:
+      Extracts data from a PDF file and returns it as a pandas DataFrame.
+
+    
+    list_number_of_stores(api_credentials: str) -> int:
+      Retrieves the number of stores via an API call and returns it as an int.
+
+    
+    retrieve_stores_data(api_credentials: str) -> pd.DataFrame:
+      Retrieves store data via an API call and returns it as a pandas DataFrame.
+
+
+    extract_from_s3(s3_path: str) -> pd.DataFrame:
+      Extracts data from an S3 bucket and returns it as a pandas DataFrame.
+  """
   
   
-  def read_rds_table(self, engine, table_name="legacy_users"):
+  def read_rds_table(self, engine: Engine, table_name: str) -> pd.DataFrame:
+
+    """
+    Reads a table from an AWS RDS database and returns it as a dataframe.
+
+    Args:
+      engine (Engine): SQLAlchemy engine instance connected to the database.
+      table_name (str): The name of the table to read from the database.
+
+    Returns:
+      pd.DataFrame: DataFrame containing the table data.
+    """
     engine.connect()
     df = pd.read_sql_table(table_name, engine)
     return df
   
 
-  def retrieve_pdf_data(self, pdf_path):
+  def retrieve_pdf_data(self, pdf_path: str) -> pd.DataFrame:
+
+    """
+    Extracts data from a PDF file and returns it as a pandas DataFrame.
+
+    Args:
+      pdf_path (str): Filepath to the YAML file containing the link to the PDF.
+
+    Returns:
+      pd.DataFrame: DataFrame containing the PDF data.
+    """
 
     with open (pdf_path, "r") as stream:
       config = yaml.safe_load(stream)
     link = config["LINK"]
 
-    print("Beginning PDF read\nOperation takes approx. 130s")
+    print("Beginning PDF read.\nOperation takes approx. 130s")
     start_time = time.time()
-    #returns a list of len 1, the 0th element is the dataframe containing the entire pdf data
     dfs = tabula.read_pdf(link, pages="all", stream=True, multiple_tables=False)
     end_time = time.time()
     elapsed_time = end_time - start_time
-    # print(f"Execution time: {elapsed_time:.2f} seconds")
-    # return the dataframe
     dataframe = dfs[0]
-    print("Read complete - loading dataframe")
-    
+    print(f"Retrieved data in {elapsed_time:.2f} seconds")
     return dataframe
   
 
-  def list_number_of_stores(self, api_creds):
+  def list_number_of_stores(self, api_creds: str) -> int:
+
+    """
+    Retrieves the number of stores via an API call.
+
+    Args:
+      api_creds (str): Filepath to the YAML file containing API credentials.
+
+    Returns:
+      int: Number of stores.
+    """
 
     with open (api_creds, "r") as stream:
       creds = yaml.safe_load(stream)
@@ -45,7 +98,6 @@ class DataExtractor():
     try:
       r = requests.get(creds["num_of_stores"], headers={"x-api-key": creds["x-api-key"]})
       r.raise_for_status()
-      print(f"status code: {r.status_code}")
     except requests.RequestException as e:
       print(f"Error: {e}")
       return
@@ -56,11 +108,20 @@ class DataExtractor():
     return number
   
 
-  def retrieve_stores_data(self, api_creds):
+  def retrieve_stores_data(self, api_creds: str) -> pd.DataFrame:
+    """
+    Retrieves stores data from an API and returns it as a DataFrame.
+
+    Args:
+      api_creds (str): Filepath to the YAML file containing the API credentials.
+    
+    Returns:
+      pd.DataFrame: DataFrame containing the stores data.
+    """
 
     with open (api_creds, "r") as stream:
       creds = yaml.safe_load(stream)
-
+    print("Beginning API read\nOperation takes approx. 50 seconds.")
     store_path = creds["store_path"]
 
     total_stores = self.list_number_of_stores(api_creds)
@@ -89,7 +150,17 @@ class DataExtractor():
     return dataframe
   
 
-  def extract_from_s3(self, s3_path):
+  def extract_from_s3(self, s3_path: str) -> pd.DataFrame:
+
+    """
+    Extracts data from an S3 bucket and returns it as a DataFrame.
+
+    Args:
+      s3_path (str): Filepath to the YAML file containing the S3 path information.
+
+    Returns:
+      pd.DataFrame: DataFrame containing the extracted data.
+    """
 
     print("Attempting to extract data from s3 bucket")
 
@@ -130,13 +201,9 @@ class DataExtractor():
 if __name__ == "__main__":
   path = "./pdf_link.yaml"
   api_creds = "./api_creds.yaml"
-  # connection = DatabaseConnector()
   extractor = DataExtractor()
-
-  # table_list = connection.list_db_tables("./db_creds.yaml")
-
+  # Uncomment lines below to test various methods:
 
   # extractor.retrieve_pdf_data(path)
-
   # extractor.retrieve_stores_data(api_creds)
-  extractor.extract_from_s3("./s3_path2.yaml")
+  # extractor.extract_from_s3("./s3_path2.yaml")
