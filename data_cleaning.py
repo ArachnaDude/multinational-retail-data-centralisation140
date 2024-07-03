@@ -1,14 +1,59 @@
 import pandas as pd
 from datetime import datetime
+from typing import Union
 
 
 class DataCleaning():
+
+  """
+  DataCleaning class governs the DataFrames cleaning, each method tailored to a specific table.
+
+  Methods:
+    clean_user_data(pandas_dataframe) -> pd.DataFrame
+      Cleans the dim_users table.
+
+    
+      clean_card_data(pandas_dataframe) -> pd.DataFrame
+        Cleans the dim_card_details table.
+
+      
+      clean_store_data(pandas_dataframe) -> pd.DataFrame
+        Cleans the dim_store_details table.
+
+
+      clean_products_data(pandas_dataframe) -> pd.DataFrame
+        Cleans the dim_products table.
+
+
+      clean_orders_table(pandas_dataframe) -> pd.DataFrame
+        Cleans the orders_table table.
+
+
+      clean_date_times_data(pandas_dataframe) -> pd.DataFrame
+        Cleans the dim_date_times table.
+  """
   
-  def clean_user_data(self, pandas_dataframe):
+  def clean_user_data(self, pandas_dataframe: pd.DataFrame) -> pd.DataFrame:
+
+    """
+    Cleans and returns the dim_users DataFrame.
+
+    The function contains several sub-functions that handle individual cleaning steps.
+    The DataFrame is passed between these sub-functions before being returned at the end.
+    The sub-functions are not designed for use individually, as each sub-function relies on
+    the DataFrame being in a form assigned by the previous one. 
+
+    Args:
+      pandas_dataframe (pd.DataFrame): Uncleaned DataFrame
+
+    Returns:
+      pd.DataFrame: Cleaned DataFrame
+    """
     
     df = pandas_dataframe
 
-    def handle_index(dataframe):
+    def handle_index(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """Sorts DataFrame by 'index' column, resets index and drops unneeded column"""
       sorted_df = dataframe.sort_values(by="index")
       sorted_df.reset_index(drop=True, inplace=True)
       sorted_df.drop(columns="index", inplace=True)
@@ -16,7 +61,8 @@ class DataCleaning():
     
     df = handle_index(df)
 
-    def drop_null_and_junk_entries(dataframe):
+    def drop_null_and_junk_entries(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """Drops rows containing "NULL" entries, and numeric characters in 'first_name' column, and resets index"""
       nulls_and_junk = dataframe.loc[(dataframe["user_uuid"] == "NULL") | (dataframe["first_name"].str.contains(r"\d"))]
       filtered_df = df.drop(nulls_and_junk.index)
       filtered_df.reset_index(drop=True, inplace=True)
@@ -24,7 +70,8 @@ class DataCleaning():
 
     df = drop_null_and_junk_entries(df)
 
-    def process_dates(date_str):
+    def process_dates(date_str: str) -> Union[datetime, pd.NaT]:
+      """Attempt to parse date strings into datetime objects, or NaT if no recognised format"""
       formats = ["%Y %B %d", "%Y/%m/%d", "%B %Y %d", "%Y-%m-%d"]
       for format in formats:
         try:
@@ -36,13 +83,15 @@ class DataCleaning():
     df["date_of_birth"] = df["date_of_birth"].apply(process_dates)
     df["join_date"] = df["join_date"].apply(process_dates)
 
-    def handle_country_code(dataframe):
+    def handle_country_code(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """Corrects erronious entry "GGB" to "GB" in country_code column"""
       dataframe.loc[dataframe["country_code"] == "GGB", "country_code"] = "GB"
       return dataframe
 
     df = handle_country_code(df)
 
-    def handle_bad_emails(dataframe):
+    def handle_bad_emails(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """Corrects @@ to @ in email_address column"""
       dataframe["email_address"] = dataframe["email_address"].str.replace("@@", "@")
       return dataframe
     
@@ -50,10 +99,25 @@ class DataCleaning():
 
     return df
 
-  def clean_card_data(self, pandas_dataframe):
+  def clean_card_data(self, pandas_dataframe: pd.DataFrame) -> pd.DataFrame:
+    """
+    Cleans and returns the dim_card_details dataframe.
+    
+    The function contains several sub-functions that handle individual cleaning steps.
+    The DataFrame is passed between these sub-functions before being returned at the end.
+    The sub-functions are not designed for use individually, as each sub-function relies on
+    the DataFrame being in a form assigned by the previous one. 
+
+    Args:
+      pandas_dataframe (pd.DataFrame): Uncleaned DataFrame
+
+    Returns:
+      pd.DataFrame: Cleaned DataFrame
+    """
     df = pandas_dataframe
 
-    def drop_null_and_junk_values(dataframe):
+    def drop_null_and_junk_values(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """Drops rows that contain null values in three or more columns, and rows that contain junk data"""
       dataframe = dataframe.drop(dataframe.loc[dataframe.isnull().sum(axis=1) >= 3].index)
       dataframe = dataframe.drop(dataframe.loc[dataframe["card_number"].str.match(r"[a-zA-Z]")].index)
       dataframe = dataframe.reset_index(drop=True)
@@ -61,7 +125,8 @@ class DataCleaning():
     
     df = drop_null_and_junk_values(df)
 
-    def handle_merged_columns(dataframe):
+    def handle_merged_columns(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """Handles rows where "card_number" and "expiry_date" columns are merged into one cell."""
       merged_rows = dataframe[(dataframe["card_number"].str.contains(r"/")) & (dataframe["expiry_date"].isnull())].index
       df_to_fix = dataframe.loc[merged_rows]
       df_to_fix[["card_number", "expiry_date"]] = df_to_fix["card_number"].str.split(" ", expand=True)
@@ -70,7 +135,8 @@ class DataCleaning():
     
     df = handle_merged_columns(df)
 
-    def process_dates(date_str):
+    def process_dates(date_str: str) -> Union[datetime, pd.NaT]:
+      """Attempt to parse date strings into datetime objects, or NaT if no recognised format"""
       formats = ["%Y %B %d", "%Y/%m/%d", "%B %Y %d", "%Y-%m-%d"]
       for format in formats:
         try:
@@ -81,7 +147,8 @@ class DataCleaning():
 
     df["date_payment_confirmed"] = df["date_payment_confirmed"].apply(process_dates)
 
-    def handle_card_number_clean(dataframe):
+    def handle_card_number_clean(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """Remove question marks from "card_number" column"""
       match_pattern = dataframe["card_number"].str.match(r"^\d+$")
       non_matching = dataframe[~match_pattern].index
       question_mark_card_numbers = dataframe.loc[non_matching]
@@ -91,77 +158,43 @@ class DataCleaning():
     
     df = handle_card_number_clean(df)
 
-    # def handle_invalid_card_numbers(dataframe):
-
-    #   def validate_diners_club(card_number):
-    #     return len(card_number) == 14 and card_number.startswith(("300", "301", "302", "303", "304", "305", "36", "38"))
-
-    #   def validate_visa(card_number):
-    #     return len(card_number) in [13, 16, 19]  and card_number.startswith("4")
-
-    #   def validate_jcb(card_number):
-    #     if len(card_number) == 15 and card_number.startswith(("2131", "1800")):
-    #       return True
-    #     elif len(card_number) == 16 and card_number.startswith("35"):
-    #       return True
-    #     else:
-    #       return False
-        
-    #   def validate_maestro(card_number):
-    #     return 12 <= len(card_number) <= 19 and card_number.startswith(("50", "56", "57", "58", "6")) 
-
-    #   def validate_mastercard(card_number):
-    #     return len(card_number) == 16 and card_number.startswith(("22", "23", "24", "25", "26", "27", "51", "52", "53", "54", "55"))
-
-    #   def validate_discover(card_number):
-    #     return len(card_number) == 16 and card_number.startswith("6")
-
-    #   def validate_amex(card_number):
-    #     return len(card_number) in [15, 16] and card_number.startswith(("34", "37"))
-      
-    #   validation_dict = {
-    #     "Diners Club / Carte Blanche": validate_diners_club,
-    #     "VISA": validate_visa,
-    #     "JCB": validate_jcb,
-    #     "Maestro": validate_maestro,
-    #     "Mastercard": validate_mastercard,
-    #     "Discover": validate_discover,
-    #     "American Express": validate_amex 
-    #   }
-
-    #   for provider, validate_function in validation_dict.items():
-    #     provider_df = df[df["card_provider"].str.contains(provider)]
-    #     invalid_cards = provider_df[~provider_df["card_number"].apply(validate_function)]
-        
-    #     if not invalid_cards.empty:
-    #       df.drop(invalid_cards.index, inplace=True)
-      
-    #   dataframe = dataframe.reset_index(drop=True)
-
-    #   return dataframe
-
-    # df = handle_invalid_card_numbers(df)
-
     return df
   
-  def clean_store_data(self, pandas_dataframe):
+  def clean_store_data(self, pandas_dataframe: pd.DataFrame) -> pd.DataFrame:
+    """
+    Cleans and returns the dim_store_details dataframe.
+
+    The function contains several sub-functions that handle individual cleaning steps.
+    The DataFrame is passed between these sub-functions before being returned at the end.
+    The sub-functions are not designed for use individually, as each sub-function relies on
+    the DataFrame being in a form assigned by the previous one. 
+
+    Args:
+      pandas_dataframe (pd.DataFrame): Uncleaned DataFrame
+
+    Returns:
+      pd.DataFrame: Cleaned DataFrame
+    """
     
     df = pandas_dataframe
 
-    def drop_useless_columns(dataframe):
+    def drop_useless_columns(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """Drops unnecessary columns"""
       dataframe.drop(columns=["index", "lat"], inplace=True)
       return dataframe
     
     df = drop_useless_columns(df)
 
-    def clean_continents(dataframe):
+    def clean_continents(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """Fixes typographical errors in continent names"""
       dataframe.loc[dataframe["continent"] == "eeEurope", "continent"] = "Europe"
       dataframe.loc[dataframe["continent"] == "eeAmerica", "continent"] = "America"
       return dataframe
     
     df = clean_continents(df)
 
-    def drop_junk_and_null_rows(dataframe):
+    def drop_junk_and_null_rows(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """ Drops rows comprised of null or junk values"""
       junk_and_null_index = dataframe.loc[~dataframe["continent"].isin(["Europe", "America"])].index
       dataframe.drop(junk_and_null_index, inplace=True)
       dataframe.reset_index(drop=True, inplace= True)
@@ -169,7 +202,8 @@ class DataCleaning():
     
     df = drop_junk_and_null_rows(df)
 
-    def process_dates(date_str):
+    def process_dates(date_str: str) -> Union[datetime, pd.NaT]:
+      """Attempt to parse date strings into datetime objects, or NaT if no recognised format"""
       formats = ["%Y %B %d", "%Y/%m/%d", "%B %Y %d", "%Y-%m-%d"]
       for format in formats:
         try:
@@ -180,14 +214,16 @@ class DataCleaning():
 
     df["opening_date"] = df["opening_date"].apply(process_dates)
 
-    def handle_staff_numbers(dataframe):
+    def handle_staff_numbers(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """Clean and convert "staff_numbers" column to numeric values"""
       dataframe["staff_numbers"] = dataframe["staff_numbers"].str.replace(r"[^0-9]", "", regex=True)
       dataframe["staff_numbers"] = pd.to_numeric(dataframe["staff_numbers"], errors="coerce")
       return dataframe
     
     df = handle_staff_numbers(df)
 
-    def correct_mislabeled_columns(dataframe):
+    def correct_mislabeled_columns(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """Correct and reorder mislabelled columns"""
       incorrect_columns = ["latitude", "longitude"]
       corrected_columns = ["longitude", "latitude"]
       dataframe.rename(columns=dict(zip(incorrect_columns, corrected_columns)), inplace=True)
@@ -197,7 +233,8 @@ class DataCleaning():
     
     df = correct_mislabeled_columns(df)
     
-    def standardise_coordinates(coordinate):
+    def standardise_coordinates(coordinate: str) -> str:
+      """Standardise coordinate values"""
       df.loc[0, ["latitude", "longitude"]] = "N/A"
       if coordinate == "N/A":
         return "0.00000"
@@ -211,11 +248,26 @@ class DataCleaning():
 
     return df
   
-  def clean_products_data(self, pandas_dataframe):
+  def clean_products_data(self, pandas_dataframe: pd.DataFrame) -> pd.DataFrame:
+    """
+    Cleans and returns the dim_products dataframe.
+
+    The function contains several sub-functions that handle individual cleaning steps.
+    The DataFrame is passed between these sub-functions before being returned at the end.
+    The sub-functions are not designed for use individually, as each sub-function relies on
+    the DataFrame being in a form assigned by the previous one. 
+
+    Args:
+      pandas_dataframe (pd.DataFrame): Uncleaned DataFrame
+
+    Returns:
+      pd.DataFrame: Cleaned DataFrame
+    """
     
     df = pandas_dataframe
 
-    def handle_null_and_junk(dataframe):
+    def handle_null_and_junk(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """Drop unnecessary columns, and rows that consist of null values and junk data"""
       nulls_and_junk = dataframe.loc[dataframe["category"].str.contains(r"\d", regex=True, na=True)].index
       dataframe.drop(columns="Unnamed: 0", inplace=True)
       dataframe.drop(nulls_and_junk, inplace=True)
@@ -224,8 +276,8 @@ class DataCleaning():
     
     df = handle_null_and_junk(df)
 
-    def convert_product_weights(weight):
-
+    def convert_product_weights(weight: str) -> Union[float, None]:
+      """Standardises all weights into their kilogram value, and converts to a float"""
       if weight.endswith(" ."):
         weight = weight.replace(" .", "")
 
@@ -271,13 +323,15 @@ class DataCleaning():
       
     df["weight"] = df["weight"].apply(convert_product_weights)
 
-    def rename_weight_column(dataframe):
+    def rename_weight_column(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """Rename the weight column to weight_kg for clarity."""
       dataframe.rename(columns={"weight": "weight_kg"}, inplace=True)
       return dataframe
     
     df = rename_weight_column(df)
 
-    def format_price(price):
+    def format_price(price: str) -> str:
+      """Remove pound sign from price."""
       price = price.replace("£", "")
       return price
 
@@ -285,11 +339,21 @@ class DataCleaning():
 
     return df
   
-  def clean_orders_table(self, pandas_dataframe):
+  def clean_orders_table(self, pandas_dataframe: pd.DataFrame) -> pd.DataFrame:
+    """ 
+    Cleans and returns the orders_table dataframe.
+    
+    Args:
+      pandas_dataframe (pd.DataFrame): Uncleaned DataFrame
+
+    Returns:
+      pd.DataFrame: Cleaned DataFrame
+    """
     
     df = pandas_dataframe
 
-    def drop_unneeded_columns(dataframe):
+    def drop_unneeded_columns(dataframe: pd.DataFrame) -> pd.DataFrame:
+      """Drops the "first_name", "last_name", "1", "level_0" and "index" columns."""
       dataframe.drop(columns=["first_name", "last_name", "1", "level_0", "index"], inplace=True)
       return dataframe
     
@@ -297,11 +361,21 @@ class DataCleaning():
 
     return df
   
-  def clean_date_times_data(self, pandas_dataframe):
+  def clean_date_times_data(self, pandas_dataframe: pd.DataFrame) -> pd.DataFrame:
+    """
+    Cleans and returns the dim_date_times DataFrame
+    
+    Args:
+      pandas_dataframe (pd.DataFrame): Uncleaned DataFrame
+
+    Returns:
+      pd.DataFrame: Cleaned DataFrame
+    """
     
     df = pandas_dataframe
 
     def drop_nulls_and_junk(dataframe):
+      """Locates all rows that contain null and junk data, drops them, and resets the index"""
       null_and_junk_index = dataframe.loc[~dataframe["date_uuid"].str.match(r"^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$")].index
       dataframe.drop(null_and_junk_index, inplace=True)
       dataframe.reset_index(drop=True, inplace=True)
