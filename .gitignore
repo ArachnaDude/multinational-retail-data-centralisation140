@@ -23,3 +23,5 @@ dim_store_details_rough_clean.ipynb
 dim_products_rough_clean.ipynb
 orders_table_rough_clean.ipynb
 dim_date_times_rough_clean.ipynb
+
+environment.yaml
