@@ -93,4 +93,6 @@ The query files inside the `sql_queries/` directory will handle this, and should
 
 The result of this should be a database with the following relationships:
 
-![erd_for_database](imgs/erd_for_database.jpg)
+![erd_for_sales_data](./imgs/erd_for_database.png)
+
+The `sales_data` database is now ready to be queried.
