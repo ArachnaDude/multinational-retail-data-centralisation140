@@ -33,7 +33,7 @@ $ cd multinational-retail-data-centralisation140
 
 For a full list of requirements for the project, check the `requirements.txt` file in the project's root directory.
 
-Use the command:
+Use the commands:
 
 ```
 $ conda create --name <env_name> --file requirements.txt
@@ -42,7 +42,11 @@ $ conda activate <env_name>
 
 ## Usage
 
-### Main Components:
+### Python
+
+---
+
+#### Main Components:
 
 The Python part of this project is comprised of 3 classes:
 
@@ -50,7 +54,7 @@ The Python part of this project is comprised of 3 classes:
 - **DataExtractor**: Handles the extraction of data from various sources
 - **DataCleaning**: Handles the cleaning of extracted data
 
-### Configuration:
+#### Configuration:
 
 The following files are required for successful running of the project. Due to the sensitive content, private distrubtion is for contributors only.
 
@@ -60,3 +64,35 @@ The following files are required for successful running of the project. Due to t
 - **api_creds.yaml**: credentials for the API
 - **s3_path.yaml**: path to the S3 bucket
 - **s3_path2.yaml**: path to the second S3 bucket
+
+### Running:
+
+To run this project, simply run `main.py`. Make sure your working directory is the MRDC project.
+
+```
+$ python3 main.py
+```
+
+`main.py` collects all of the functions that govern the ETL pipeline for each table. As such, running it will extract, clean and upload all tables to the local database.
+
+### PSQL
+
+---
+
+#### Schema setup:
+
+The Python functions govern the upload of the cleaned data. However the next step is to set up the schema for the database. This is to be done inside pgAdmin4.
+
+The query files inside the `sql_queries/` directory will handle this, and should be executed in the following order:
+
+- Running the query files in the `cast_column_types/` sub-directory will convert the columns in each table to the correct datatype.
+
+- Running the query file in the `set_primary_keys/` sub-directory will set the primary keys for each table.
+
+- Running the query file in the `set_foreign_keys/` subdirectory will set the foreign keys on the orders_table that reference the primary keys for the other tables.
+
+The result of this should be a database with the following relationships:
+
+![erd_for_sales_data](./imgs/erd_for_database.png)
+
+The `sales_data` database is now ready to be queried.

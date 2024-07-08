@@ -203,5 +203,3 @@ if __name__ == "__main__":
 
   path_2 = "./s3_path2.yaml"
   process_date_times(path_2, local_creds)
-
-
