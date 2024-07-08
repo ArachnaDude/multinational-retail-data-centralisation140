@@ -6,9 +6,6 @@ ALTER TABLE dim_store_details
 ALTER COLUMN latitude TYPE DOUBLE PRECISION
 USING latitude::double precision;
 
-SELECT * FROM dim_store_details
-WHERE store_type = 'Web Portal';
-
 UPDATE dim_store_details
 SET longitude = NULL
 WHERE store_type = 'Web Portal';
