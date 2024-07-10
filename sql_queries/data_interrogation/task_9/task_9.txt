@@ -1,0 +1,16 @@
+Task 9: How quickly is the company making sales?
+
+Sales would like the get an accurate metric for how quickly the company is making sales.
+Determine the average time taken between each sale grouped by year, the query should return the following information:
+
+ +------+-------------------------------------------------------+
+ | year |                           actual_time_taken           |
+ +------+-------------------------------------------------------+
+ | 2013 | "hours": 2, "minutes": 17, "seconds": 12, "millise... |
+ | 1993 | "hours": 2, "minutes": 15, "seconds": 35, "millise... |
+ | 2002 | "hours": 2, "minutes": 13, "seconds": 50, "millise... | 
+ | 2022 | "hours": 2, "minutes": 13, "seconds": 6,  "millise... |
+ | 2008 | "hours": 2, "minutes": 13, "seconds": 2,  "millise... |
+ +------+-------------------------------------------------------+
+
+ Hint: You will need the SQL command LEAD.
