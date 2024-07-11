@@ -21,6 +21,7 @@ The learning goals for this project are:
 ### Prerequisites:
 
 - Python v3.12
+- conda v24 or higher
 - PostgreSQL v14.12 or higher
 - pgAdmin4 v6.9 or higher
 
@@ -31,12 +32,12 @@ $ git clone https://github.com/ArachnaDude/multinational-retail-data-centralisat
 $ cd multinational-retail-data-centralisation140
 ```
 
-For a full list of requirements for the project, check the `requirements.txt` file in the project's root directory.
+For a full list of requirements for the project, check the `environment.yaml` file in the project's root directory.
 
-Use the commands:
+To create an environment from this file, use the commands:
 
 ```
-$ conda create --name <env_name> --file requirements.txt
+$ conda env create --file environment.yaml
 $ conda activate <env_name>
 ```
 
@@ -89,10 +90,10 @@ The query files inside the `sql_queries/` directory will handle this, and should
 
 - Running the query file in the `set_primary_keys/` sub-directory will set the primary keys for each table.
 
-- Running the query file in the `set_foreign_keys/` subdirectory will set the foreign keys on the orders_table that reference the primary keys for the other tables.
+- Running the query file in the `set_foreign_keys/` sub-directory will set the foreign keys on the orders_table that reference the primary keys for the other tables.
 
 The result of this should be a database with the following relationships:
 
 ![erd_for_sales_data](./imgs/erd_for_database.png)
 
-The `sales_data` database is now ready to be queried.
+The `sales_data` database is now ready to be queried. The `data_interrogation/` sub-directory contains task folders. The `.txt` file contains the context, the challenge, and the expected output of the query. The `.sql` files contain the query that solves the challenge.
